@@ -74,10 +74,10 @@ combinePlayer.playbackRate;
 其用法为:
 
 ```typescript
-combinePlayer.timeDuration;
+combinePlayer.timeDuration.duration;
 ```
 
-其返回值和之前的不一致，详情请参考:
+其返回值和之前的不一致，详情请参考: [timeDuration](#timeDuration)
 
 ### 成员方法
 
@@ -131,7 +131,32 @@ combinePlayer.stop();
 
 如果您想获取当前回放的进度，您可以继续使用 `player.phase` 来获取，当然最好(**十分推荐**)是使用 `@netless/combine-player` 的成员方法来进行获取。
 
-关于 `@netless/combine-player` 的状态获取，可参考:
+关于 `@netless/combine-player` 的状态获取，可参考: [combinedStatus](#combinedStatus)、[setOnStatusChange](#setOnStatusChange)
+
+如果想保留之前的状态判断，可以通过以下代码进行转换:
+
+```typescript
+switch (combinedStatus) {
+    case PublicCombinedStatus.PauseBuffering:
+    case PublicCombinedStatus.PlayingBuffering:
+    case PublicCombinedStatus.PauseSeeking:
+    case PublicCombinedStatus.PlayingSeeking: {
+        return PlayerPhase.Buffering;
+    }
+    case PublicCombinedStatus.Playing: {
+        return PlayerPhase.Playing;
+    }
+    case PublicCombinedStatus.Pause: {
+        return PlayerPhase.Pause;
+    }
+    case PublicCombinedStatus.Stopped: {
+        return PlayerPhase.Stopped;
+    }
+    case PublicCombinedStatus.Disabled: {
+        throw new Error("...");
+    }
+}
+```
 
 ## 接口
 
@@ -176,7 +201,7 @@ interface VideoOptions {
 
 如果元素不是 `video` 将会报错
 
-> 如果 `videoElementID` 和 `videoDOM` 都没传入，程序将自动创建一个 `video` 元素。您可以通过: `getVideoDOM` 方法来获取此元素，详情可参考: 
+> 如果 `videoElementID` 和 `videoDOM` 都没传入，程序将自动创建一个 `video` 元素。您可以通过: `getVideoDOM` 方法来获取此元素，详情可参考: [getVideoDOM](#getVideoDOM)
 
 **videoJsOptions(optional)**
 
@@ -213,7 +238,7 @@ combinePlayerFactory.getVideoDOM();
 
 ```typescript
 const combinePlayerFactory = new CombinePlayerFactory(player, videoOptions, debug);
-const combinePlayer = combinePlayerFactory.create();
+combinePlayerFactory.create();
 ```
 
 其成员方法参考: [combinePlayer](#combinePlayer)
@@ -224,3 +249,186 @@ const combinePlayer = combinePlayerFactory.create();
 const combinePlayerFactory = new CombinePlayerFactory(player, videoOptions, debug);
 const combinePlayer = combinePlayerFactory.create();
 ```
+
+#### 成员属性
+
+##### playbackRate
+
+获取/修改播放倍率，其默认值为: `1`
+
+```typescript
+// 获取当前播放速率
+combinePlayer.playbackRate;
+
+// 改变播放速率
+combinePlayer.playbackRate = 2
+```
+
+##### timeDuration
+
+获得回放总时长，其返回类型为:
+
+```typescript
+interface TimeDuration {
+    readonly duration: number;
+    readonly video: number;
+    readonly whiteboard: number;
+}
+```
+
+**duration**
+
+取 `video` 和 `whiteboard` 最小值
+
+**video**
+
+`video` 的总时长
+
+**whiteboard**
+
+白板回放的总时长
+
+##### combinedStatus
+
+当前回放的组合状态。默认状态为: `PauseBuffering`
+
+其返回值类型为:
+
+```typescript
+enum PublicCombinedStatus {
+    PauseSeeking = "PauseSeeking",
+    PlayingSeeking = "PlayingSeeking",
+    Pause = "Pause",
+    PauseBuffering = "PauseBuffering",
+    PlayingBuffering = "PlayingBuffering",
+    Playing = "Playing",
+    Ended = "Ended",
+    Disabled = "Disabled",
+    Stopped = "Stopped",
+}
+```
+
+**PauseSeeking**
+
+当在暂停状态时，用户进行 [seek](#seek)，会到达此状态
+
+详情可参考: [seek](#seek)
+
+**PlayingSeeking**
+
+当在播放状态时，用户进行 [seek](#seek)`，会到达此状态
+
+详情可参考: [seek](#seek)
+
+**Pause**
+
+当用户调用了 [pause](#pause) 方法时，会到达此状态
+
+**PauseBuffering**
+
+当当前是暂停状态，并且视频后面没有可播放的帧数据时，会到达此状态
+
+**PlayingBuffering**
+
+当当前正在播放时，下一帧没有可播放的帧数据时，会到达此状态
+
+**Playing**
+
+用户调用了 [play](#play) 方法时，或用户调用了 `seek`，并 `seek` 结束后，会到达此状态
+
+**Ended**
+
+`白板回放` 和 `video` 中有一端播放完毕，会到达此状态
+
+**Disabled**
+
+当出现意外时(有可能是`@netless/combine-player` 出现了 bug)，会到达此状态。
+
+**Stopped**
+
+用户调用了 [stop](#stop) 方法时，会到达此状态
+
+#### 成员方法
+
+##### play
+
+开始播放及同步
+
+```typescript
+combinePlayer.play();
+```
+
+##### pause
+
+暂停播放
+
+```typescript
+combinePlayer.pause();
+```
+
+##### seek
+
+切换进度。该值会改变当前状态。
+
+由于该方法需要发起网络请求，因此改变不会立即生效。
+
+在等待过程中，当前状态会变为: `PauseSeeking` 或 `PlayingSeeking`
+
+当 `seek` 结束后，状态会变为: `Playing` 或 `Ended`
+
+```typescript
+combinePlayer.seek(ms);
+```
+
+##### stop
+
+停止。当前状态会变为 `Stopped`，此后 `@netless/combine-player` 实例将拒绝一切业务操作。
+
+```typescript
+combinePlayer.stop();
+```
+
+##### setOnStatusChange
+
+添加状态改变监听器，当状态发生改成时，会触发此方法
+
+```typescript
+combinePlayer.setOnStatusChange((status, message) => {
+  console.log("[combinePlayer] 状态发生改变: ", status, message);
+});
+```
+
+##### removeStatusChange
+
+移除指定的状态改变监听器
+
+```typescript
+const combinePlayerStatusChanged = (status: PublicCombinedStatus, message?: string) => {
+ console.log("[combinePlayer] 状态发生改变: ", status, message);
+}
+combinePlayer.setOnStatusChange(combinePlayerStatusChanged);
+
+combinePlayer.removeStatusChange(combinePlayerStatusChanged);
+```
+
+##### removeAllStatusChange
+
+移除所有的状态改变监听器
+
+```typescript
+combinePlayer.removeAllStatusChange();
+```
+
+## 调用流程
+
+`@netless/combine-player` 内部有一个队列，只有上一个完成，才会执行下一个。例如:
+
+```typescript
+combinePlayer.play();
+combinePlayer.seek(1000 * 10);
+combinePlayer.pause();
+```
+
+上面代码的实际执行流程为: 
+
+等待回放到达 `Playing` 后，再去 `seek` 到 `10` 秒钟，等 `seek` 结束后，再去让回放暂停。
