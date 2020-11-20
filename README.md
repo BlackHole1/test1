@@ -143,11 +143,11 @@ const combinePlayerFactory = new CombinePlayerFactory(player, videoOptions, debu
 
 #### 参数
 
-##### **player**
+**player**
 
 其中 `player` 为 `replayRoom` 方法创建，具体可见: [ 构造 Player 对象](https://developer.netless.link/javascript-zh/home/construct-room-and-player#%E6%9E%84%E9%80%A0-player-%E5%AF%B9%E8%B1%A1)
 
-###### **videoOptions**
+**videoOptions**
 
 ```typescript
 interface VideoOptions {
@@ -158,11 +158,11 @@ interface VideoOptions {
 }
 ```
 
-###### **url(required)**
+**url(required)**
 
 选择要回放视频的 video 地址，以便进行同步
 
-###### **videoElementID(optional)**
+**videoElementID(optional)**
 
 表明要选择哪一个 `video DOM` 元素的 `id`
 
@@ -170,7 +170,7 @@ interface VideoOptions {
 
 > 如果同时传入 `videoElementID` 和 `videoDOM` 程序将会报错
 
-###### **videoDOM(optional)**
+**videoDOM(optional)**
 
 表明要选择哪一个 `video DOM` 元素
 
@@ -178,7 +178,7 @@ interface VideoOptions {
 
 > 如果 `videoElementID` 和 `videoDOM` 都没传入，程序将自动创建一个 `video` 元素。您可以通过: `getVideoDOM` 方法来获取此元素，详情可参考: 
 
-###### **videoJsOptions(optional)**
+**videoJsOptions(optional)**
 
 video.js 实例化时的参数，详情可见: [Video.js Options](https://docs.videojs.com/tutorial-options.html)
 
@@ -190,7 +190,7 @@ video.js 实例化时的参数，详情可见: [Video.js Options](https://docs.v
 }
 ```
 
-###### **debug(optional)**
+**debug(optional)**
 
 是否开启 `debug` 模式，此模式将会把 `@netless/combine-player` 运行时的日志打印到 `console` 里
 
