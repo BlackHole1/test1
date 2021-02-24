@@ -1,5 +1,6 @@
 # @netless/combine-player
 
+// test
 同步 白板回放 和 video 的项目
 
 此项目用于代替 `white-web-sdk` 中的同步功能，`white-web-sdk@2.11.2` 版本后将取消同步功能，并有此项目接手。
